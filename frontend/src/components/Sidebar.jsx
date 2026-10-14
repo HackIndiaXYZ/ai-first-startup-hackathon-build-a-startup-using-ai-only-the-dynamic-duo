@@ -2,6 +2,7 @@ import './Sidebar.css';
 
 const NAV_ITEMS = [
   { id: 'dashboard', label: 'Dashboard', icon: '⊞', active: true },
+  { id: 'connect-email', label: 'Connect Email', icon: '✉', active: true },
   { id: 'subscriptions', label: 'My Subscriptions', icon: '☰', active: false },
   { id: 'reminders', label: 'Reminders', icon: '🔔', active: false },
   { id: 'settings', label: 'Settings', icon: '⚙', active: false },
