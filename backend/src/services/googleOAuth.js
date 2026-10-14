@@ -23,6 +23,13 @@ const { google } = require('googleapis');
 
 const GMAIL_READONLY_SCOPE = 'https://www.googleapis.com/auth/gmail.readonly';
 
+// Identity scopes are required so Google issues an ID token with the code
+// exchange response — verifyIdToken resolves sub/email from it. Without at
+// least 'openid', the token response contains NO id_token (documented:
+// https://developers.google.com/identity/protocols/oauth2/native-app), which
+// breaks identity resolution entirely.
+const OIDC_SCOPES = ['openid', 'email'];
+
 let _oauth2Client = null;
 
 /** Returns the shared OAuth2 client, creating it on first call. */
@@ -64,7 +71,7 @@ function getAuthUrl(state) {
   return getClient().generateAuthUrl({
     access_type: 'offline',   // required to receive a refresh token
     prompt: 'consent',        // force consent so a refresh token is reissued
-    scope: [GMAIL_READONLY_SCOPE],
+    scope: [GMAIL_READONLY_SCOPE, ...OIDC_SCOPES],
     state,
   });
 }
@@ -82,8 +89,13 @@ async function exchangeCodeForTokens(code) {
   const { tokens } = await getClient().getToken(code);
 
   // Resolve the Google account identity from the verified token payload so we
-  // never key a connection on anything client-supplied.
-  const info = await getClient().verifyIdToken({ idToken: tokens.id_token });
+  // never key a connection on anything client-supplied. The audience is
+  // explicitly bound to OUR client id — an ID token minted for another OAuth
+  // client (or tampered with) fails verification.
+  const info = await getClient().verifyIdToken({
+    idToken: tokens.id_token,
+    audience: process.env.GOOGLE_CLIENT_ID,
+  });
   const payload = info?.payload || {};
 
   return {

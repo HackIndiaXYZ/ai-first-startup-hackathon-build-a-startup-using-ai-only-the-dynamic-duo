@@ -57,7 +57,7 @@ const db = { sessions: [], gmail_tokens: [] };
 
 // Per-scenario Google stub configuration.
 let googleConfig = {};
-const googleCalls = { exchange: 0 };
+const googleCalls = { exchange: 0, verifyIdTokenCalls: [] };
 
 // query.builder state table names.
 const TABLES = ['sessions', 'gmail_tokens'];
@@ -202,13 +202,26 @@ class FakeOAuth2 {
       access_token: 'at_' + crypto.randomBytes(6).toString('hex'),
       expiry_date: Date.now() + 3600_000,
       scope: 'https://www.googleapis.com/auth/gmail.readonly misc.scope',
-      id_token: 'fake-id-token',
+      // The real Google token endpoint omits id_token without an identity
+      // scope; the harness reproduces that via googleConfig.noIdToken.
+      id_token: googleConfig.noIdToken ? undefined : 'fake-id-token',
     };
     if (googleConfig.refreshToken) tokens.refresh_token = googleConfig.refreshToken;
     return { tokens };
   }
 
-  async verifyIdToken() {
+  async verifyIdToken(opts) {
+    // Record the exact arguments for the audience regression assertions.
+    googleCalls.verifyIdTokenCalls.push(opts || {});
+    // Faithfully mimic the real google-auth-library behavior: rejecting a
+    // missing/invalid ID token with the same error message, and binding the
+    // aud check to the provided audience.
+    if (!opts || typeof opts.idToken !== 'string' || opts.idToken.length === 0) {
+      throw new Error('The verifyIdToken method requires an ID Token');
+    }
+    if (opts.audience === undefined) {
+      throw new Error('harness: exchange must bind an explicit audience');
+    }
     return {
       payload: { sub: googleConfig.sub || 'sub_default', email: googleConfig.email || 'user@example.com' },
     };
@@ -248,6 +261,7 @@ Module._load = function stubbedLoad(request, parent, isMain) {
 };
 
 const tokenEncryption = require(path.join(backendRoot, 'src/services/tokenEncryption'));
+const googleOAuthMod = require(path.join(backendRoot, 'src/services/googleOAuth'));
 const authRouter = require(path.join(backendRoot, 'src/routes/auth'));
 const { COOKIE_NAME } = require(path.join(backendRoot, 'src/middleware/session'));
 
@@ -319,6 +333,7 @@ function reset() {
   db.sessions.length = 0;
   db.gmail_tokens.length = 0;
   googleCalls.exchange = 0;
+  googleCalls.verifyIdTokenCalls.length = 0;
   googleConfig = {};
 }
 
@@ -343,11 +358,19 @@ async function run() {
       authUrlRaw.slice(0, 100)
     );
     check(
-      '1b. offline + consent + gmail.readonly in auth URL',
+      '1b. offline + consent in auth URL',
       p.get('access_type') === 'offline' &&
-        p.get('prompt') === 'consent' &&
-        (p.get('scope') || '').includes('gmail.readonly'),
+        p.get('prompt') === 'consent',
       authUrlRaw.slice(0, 100)
+    );
+    const scopeList = (p.get('scope') || '').split(' ');
+    check(
+      '1b2. auth URL requests exactly gmail.readonly + openid + email scopes',
+      scopeList.length === 3 &&
+        scopeList.includes('https://www.googleapis.com/auth/gmail.readonly') &&
+        scopeList.includes('openid') &&
+        scopeList.includes('email'),
+      `${p.get('scope') || '(missing)'}`
     );
     const state1 = p.get('state') || '';
     check(
@@ -450,6 +473,13 @@ async function run() {
         locCb.includes('email=user%40example.com') &&
         googleCalls.exchange === 1,
       `loc=${decodeURIComponent(locCb).slice(0, 90)}, exchanges=${googleCalls.exchange}`
+    );
+    check(
+      '5a2. verifyIdToken called once with the exact response id_token and OUR audience',
+      googleCalls.verifyIdTokenCalls.length === 1 &&
+        googleCalls.verifyIdTokenCalls[0].idToken === 'fake-id-token' &&
+        googleCalls.verifyIdTokenCalls[0].audience === process.env.GOOGLE_CLIENT_ID,
+      JSON.stringify({ calls: googleCalls.verifyIdTokenCalls.length })
     );
     check(
       '6a. token row stored with encrypted AT + RT instead of plaintext',
@@ -639,6 +669,55 @@ async function run() {
     check(
       '9b. stale-state conditional UPDATE matches zero rows (no double consume)',
       Array.isArray(staleRows) && staleRows.length === 0
+    );
+
+    // ---------------------------------------------------------------------
+    // Scenario 10: missing/invalid ID token (regression for the real-flow
+    // failure fixed by adding openid+email scopes). The exchange resolves
+    // tokens but identity verification must reject, the route must redirect
+    // with token_exchange_failed, and NOTHING may be persisted.
+    // ---------------------------------------------------------------------
+    reset();
+    googleConfig = {
+      noIdToken: true, // responses like gmail.readonly-only requests
+      refreshToken: 'rt_x', sub: 'sub_noid', email: 'noid@example.com',
+    };
+
+    let rejected = null;
+    try {
+      await googleOAuthMod.exchangeCodeForTokens('unit-test-code');
+    } catch (e) {
+      rejected = e.message;
+    }
+    check(
+      '10. exchangeCodeForTokens rejects a response without an ID token',
+      !!rejected && /ID Token/.test(rejected),
+      `msg=${rejected}`
+    );
+
+    reset();
+    googleConfig = { noIdToken: true, refreshToken: 'rt_x', sub: 'sub_noid', email: 'noid@example.com' };
+    const resNoid1 = await request('/api/auth/google');
+    const stateNoid = stateFromAuthUrl(resNoid1.headers.location || '');
+    const resNoid2 = await request(
+      `/api/auth/google/callback?code=code-noid&state=${stateNoid}`,
+      { headers: { cookie: signedCookieHeader(resNoid1) } }
+    );
+    const locNoid = resNoid2.headers.location || '';
+    check(
+      '10a. route redirects token_exchange_failed with no persistence',
+      resNoid2.status === 302 &&
+        locNoid.includes('error=token_exchange_failed') &&
+        db.gmail_tokens.length === 0 &&
+        db.sessions.every((s) => s.google_sub === null) &&
+        googleCalls.exchange === 1,
+      `loc=${decodeURIComponent(locNoid).slice(0, 90)}, exchanges=${googleCalls.exchange}`
+    );
+    check(
+      '10b. even on this failure the aud binding is enforced by the implementation',
+      googleCalls.verifyIdTokenCalls.length === 1 &&
+        googleCalls.verifyIdTokenCalls[0].audience === process.env.GOOGLE_CLIENT_ID,
+      `calls=${googleCalls.verifyIdTokenCalls.length}`
     );
   } catch (err) {
     results.push(`ABORT ${err.stack}`);
