@@ -5,7 +5,8 @@ const STATUS_CONFIG = {
   expiring_soon: { label: 'Expiring Soon', className: 'badge--expiring' },
   expired: { label: 'Expired', className: 'badge--expired' },
   cancelled: { label: 'Cancelled', className: 'badge--cancelled' },
-  unknown: { label: 'Unknown', className: 'badge--unknown' },
+  //status part: neutral label shown when trialEndDate is null
+  unknown: { label: 'Status unknown', className: 'badge--unknown' },
 };
 
 export default function StatusBadge({ status }) {

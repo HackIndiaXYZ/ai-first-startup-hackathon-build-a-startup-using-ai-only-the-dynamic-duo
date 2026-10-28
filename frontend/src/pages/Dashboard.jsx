@@ -40,6 +40,12 @@ export default function Dashboard() {
     );
   }
 
+  // CP5: user-saved subscriptions are separated from the six demo rows.
+  // Ledger: every user-saved row carries source === 'scan' (migration 004);
+  // anything else (incl. backend versions without the column) is demo data.
+  const savedSubscriptions = subscriptions.filter((sub) => sub.source === 'scan');
+  const demoSubscriptions = subscriptions.filter((sub) => sub.source !== 'scan');
+
   return (
     <main className="dashboard">
       <div className="dashboard__header">
@@ -53,18 +59,41 @@ export default function Dashboard() {
 
       <StatsSummary subscriptions={subscriptions} />
 
-      <section>
-        <h2 className="dashboard__section-title">Your Subscriptions</h2>
-        <div className="sub-grid">
-          {subscriptions.map((sub) => (
-            <SubscriptionCard
-              key={sub.id}
-              subscription={sub}
-              onViewDetails={setSelectedSub}
-            />
-          ))}
-        </div>
-      </section>
+      {savedSubscriptions.length > 0 && (
+        <section>
+          <h2 className="dashboard__section-title">Saved from Gmail</h2>
+          <p className="dashboard__subtitle">
+            Subscriptions you saved from scan results on the Connect Email page.
+          </p>
+          <div className="sub-grid">
+            {savedSubscriptions.map((sub) => (
+              <SubscriptionCard
+                key={sub.id}
+                subscription={sub}
+                onViewDetails={setSelectedSub}
+              />
+            ))}
+          </div>
+        </section>
+      )}
+
+      {demoSubscriptions.length > 0 && (
+        <section>
+          <h2 className="dashboard__section-title">Demo data</h2>
+          <p className="dashboard__subtitle">
+            Fictional sample subscriptions included with TrialGuard — not from your mailbox.
+          </p>
+          <div className="sub-grid">
+            {demoSubscriptions.map((sub) => (
+              <SubscriptionCard
+                key={sub.id}
+                subscription={sub}
+                onViewDetails={setSelectedSub}
+              />
+            ))}
+          </div>
+        </section>
+      )}
 
       {selectedSub && (
         <SubscriptionModal

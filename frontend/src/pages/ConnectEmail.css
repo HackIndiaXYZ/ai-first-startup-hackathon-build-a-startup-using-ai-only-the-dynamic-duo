@@ -205,3 +205,262 @@
     padding: 20px 16px;
   }
 }
+
+/* ---- Manual Scan Now (CP4) --------------------------------------------- */
+
+.scan-section {
+  margin-top: 22px;
+  max-width: 620px;
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 22px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.scan-section__title {
+  font-size: 16px;
+  font-weight: 700;
+  color: #111827;
+  margin: 0;
+}
+
+.scan-section__meta {
+  font-size: 13px;
+  color: #6b7280;
+  margin: 6px 0 0;
+}
+
+.scan-section__actions {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  margin-top: 16px;
+}
+
+.scan-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: #2563eb;
+  color: #ffffff;
+  font-size: 14px;
+  font-weight: 600;
+  border: none;
+  border-radius: 8px;
+  padding: 10px 18px;
+  cursor: pointer;
+}
+
+.scan-btn:hover:not(:disabled) {
+  background: #1d4ed8;
+}
+
+.scan-btn:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+
+.scan-btn__spinner {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  border: 2px solid rgba(255, 255, 255, 0.4);
+  border-top-color: #ffffff;
+  animation: scan-spin 0.8s linear infinite;
+}
+
+@keyframes scan-spin {
+  to { transform: rotate(360deg); }
+}
+
+.scan-results__meta {
+  font-size: 13px;
+  color: #4b5563;
+  margin: 16px 0 10px;
+}
+
+.scan-results__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.scan-candidate {
+  display: flex;
+  gap: 12px;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  padding: 12px 14px;
+}
+
+.scan-candidate__select {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: #4b5563;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.scan-candidate__main {
+  min-width: 0;
+}
+
+.scan-candidate__head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.scan-candidate__name {
+  font-size: 14px;
+  color: #111827;
+}
+
+.scan-badge {
+  font-size: 11px;
+  font-weight: 700;
+  border-radius: 999px;
+  padding: 2px 9px;
+  border: 1px solid;
+}
+
+.scan-badge--trial {
+  color: #92400e;
+  background: #fffbeb;
+  border-color: #fcd34d;
+}
+
+.scan-badge--renewal {
+  color: #1e40af;
+  background: #eff6ff;
+  border-color: #93c5fd;
+}
+
+.scan-badge--receipt {
+  color: #065f46;
+  background: #ecfdf5;
+  border-color: #6ee7b7;
+}
+
+.scan-badge--cancellation {
+  color: #991b1b;
+  background: #fef2f2;
+  border-color: #fca5a5;
+}
+
+.scan-badge--payment_reminder {
+  color: #6d28d9;
+  background: #f5f3ff;
+  border-color: #c4b5fd;
+}
+
+.scan-confidence {
+  font-size: 11px;
+  color: #6b7280;
+}
+
+.scan-confidence--high {
+  color: #047857;
+  font-weight: 600;
+}
+
+.scan-candidate__details {
+  display: flex;
+  gap: 18px;
+  flex-wrap: wrap;
+  margin: 8px 0 0;
+}
+
+.scan-candidate__detail {
+  min-width: 0;
+}
+
+.scan-candidate__detail dt {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #9ca3af;
+}
+
+.scan-candidate__detail dd {
+  font-size: 13px;
+  color: #374151;
+  margin: 2px 0 0;
+}
+
+.scan-selection-note {
+  font-size: 12px;
+  color: #6b7280;
+  margin: 12px 0 0;
+}
+
+/* ---- Save Selected (CP5) ------------------------------------------------ */
+
+.scan-save-block {
+  margin-top: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: flex-start;
+}
+
+.scan-save__hint {
+  font-size: 12px;
+  color: #6b7280;
+  margin: 2px 0 0;
+}
+
+.scan-save__confirm {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.scan-outcomes {
+  margin-top: 14px;
+  border: 1px solid #bbf7d0;
+  background: #f0fdf4;
+  border-radius: 10px;
+  padding: 12px 14px;
+  font-size: 13px;
+  color: #14532d;
+}
+
+.scan-outcomes strong {
+  font-size: 13px;
+}
+
+.scan-outcomes p {
+  margin: 6px 0 0;
+}
+
+.scan-empty {
+  margin-top: 16px;
+  border: 1px dashed #d1d5db;
+  border-radius: 10px;
+  padding: 14px 16px;
+}
+
+.scan-empty strong {
+  font-size: 14px;
+  color: #374151;
+}
+
+.scan-empty p {
+  font-size: 13px;
+  color: #6b7280;
+  margin: 4px 0 0;
+}
+
+.connect-banner__hint {
+  color: #6b7280;
+  font-size: 13px;
+}

@@ -16,12 +16,13 @@ function computeStats(subscriptions) {
 
   // Potential post-trial charges: active trials that have not yet ended.
   // Excludes expired and cancelled subscriptions.
+  //price part: skip subscriptions with null/non-finite price so they do not add as $0
   const potentialCharges = subscriptions
     .filter((s) => {
       const rs = resolvedStatus(s);
       return rs === 'active' || rs === 'expiring_soon';
     })
-    .reduce((sum, s) => sum + s.price, 0);
+    .reduce((sum, s) => sum + (s.price != null && isFinite(s.price) ? s.price : 0), 0);
 
   return { total, activeTrials, expiringSoon, potentialCharges };
 }

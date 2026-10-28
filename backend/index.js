@@ -5,6 +5,7 @@ const cookieParser = require('cookie-parser');
 const errorHandler = require('./src/middleware/errorHandler');
 const subscriptionsRouter = require('./src/routes/subscriptions');
 const authRouter = require('./src/routes/auth');
+const scanRouter = require('./src/routes/scan');
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -29,6 +30,7 @@ app.get('/api/health', (req, res) => {
 // Routes
 app.use('/api/auth', authRouter);
 app.use('/api/subscriptions', subscriptionsRouter);
+app.use('/api/scan', scanRouter);
 
 // 404 fallback for unknown API routes
 app.use('/api/{*path}', (req, res) => {

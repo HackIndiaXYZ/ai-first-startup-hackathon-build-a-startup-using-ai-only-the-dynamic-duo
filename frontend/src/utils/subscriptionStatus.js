@@ -34,6 +34,8 @@ export function daysRemaining(dateStr) {
  */
 export function resolvedStatus(subscription) {
   if (subscription.status === 'cancelled') return 'cancelled';
+  //status part: null trialEndDate means expiry is unknown — not active
+  if (subscription.trialEndDate == null) return 'unknown';
   const days = daysRemaining(subscription.trialEndDate);
   if (days < 0) return 'expired';
   if (days <= 7) return 'expiring_soon';
