@@ -1,4 +1,5 @@
 # TrialGuard
+> HackIndia submission by **The Dynamic Duo** — AI-First Startup Hackathon. Team tag: `hackindia-team:ai-first-startup-hackathon-build-a-startup-using-ai-only:the-dynamic-duo`
 
 AI-powered subscription and free-trial management agent — Vibe Coding Hackathon 2026.
 
