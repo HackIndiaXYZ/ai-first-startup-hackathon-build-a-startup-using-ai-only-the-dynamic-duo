@@ -113,7 +113,7 @@ session cookie. Provide status and disconnect endpoints. Preserve any valid exis
 refresh token on reconnect.
 
 ### Expected Outcomes
-- The Connect Email page shows "Not connected" or "Connected as hiltan004@gmail.com"
+- The Connect Email page shows "Not connected" or "Connected as user@gmail.com"
   based on whether the current session has a linked `google_sub` in the database.
 - Clicking "Connect Gmail" creates a server-side session, then redirects to Google.
 - After consent, tokens are encrypted and stored; the session is updated; the browser
