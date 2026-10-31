@@ -162,6 +162,20 @@ I built TrialGuard with AI tools in stages:
 
 Planning notes written with AI help are in `gmail-integration-plan.md` and `cp5-save-selected-plan.md`.   
 
+## Roadmap: AI-assisted extraction
+
+Today the detection is rule-based. The next step is an **opt-in** AI helper, off by default, that would
+fill only the fields the rules left Unknown. Design rules, decided before building:
+
+- The AI must return an exact quote from the email as proof, and the app checks that the quote is really in the text.
+- It never changes a value the rules already found, and never changes the category.
+- Email text is cleaned first (addresses, links and long numbers removed), capped in length, and never stored.
+- Every AI-filled field is badged "AI-suggested" so the user checks it.
+- If the AI fails, the rules' result is kept.
+
+It is not built yet. We chose to ship a reliable, tested rule-based version, and to add the AI helper only with
+a privacy review.
+
 ### Not yet done
 
 - Testing with a second account (to confirm one user cannot see another user's saved rows).
