@@ -1,7 +1,6 @@
 # TrialGuard
 > HackIndia submission by **The Dynamic Duo** — AI-First Startup Hackathon. Team tag: `hackindia-team:ai-first-startup-hackathon-build-a-startup-using-ai-only:the-dynamic-duo`
 
-AI-powered subscription and free-trial management agent — Vibe Coding Hackathon 2026.
 
 ## Phase 1 — Working Dashboard
 
@@ -120,6 +119,48 @@ Where an email does not state a date, price or status, TrialGuard shows "Unknown
    restart makes the user scan again.
 8. Email text (subject, preview and a limited part of the body) is read while scanning but is never
    stored, logged or sent to the browser.
+
+## How AI was used
+
+I built TrialGuard with AI tools in stages:
+
+| Stage | Tool | What it did |
+|---|---|---|
+| 1 | ChatGPT | Wrote the prompts I gave to the coding tool, diagnosed problems and planned fixes in the earlier phases (up to 26 Oct). |
+| 2 | Freebuff | AI coding agent that wrote the code from those prompts.  The dashboard, the Supabase setup, the Gmail sign-in. |
+| 3 | IBM Bob | AI coding agent in the IDE. It read the code in a read-only mode and made edits in an edit mode. I approved every edit by hand and kept auto-approve off. |
+| 4 | Claude | From 26 Oct: planned the work, found the causes of bugs, wrote the prompts I gave to Bob, and helped me read test results. |
+
+### Work done with ChatGPT and Freebuff (before 26 Oct)
+
+- Found out why the dashboard showed only sample rows. The login cookie was already being sent, so no change was needed there.
+- Fixed saves being reported as "already saved" when they had worked: the database insert did not return the new row.
+- Added server logging for scan-reference problems, without logging the reference itself.
+- Fixed a dashboard crash caused by a saved item with no price (missing values are now handled safely).
+- Made an item with no end date show "Status unknown" instead of "active".
+- Added tests for these fixes, and wrote the plan for reading email bodies.
+
+### Work done with Claude and IBM Bob (26 to 31 Oct)
+
+- Built the email-body reader and made dates and prices come from the body when it is available.
+- Added 31 tests for the body reader and 22 tests for the new date and payment rules, all using invented emails.
+- Replaced a misleading "saving window expired" message with two clearer messages and tests.
+- Connected the backend tests to `npm test`.
+- Ran a real end-to-end test on my own mailbox.
+
+### How a human stayed in control
+
+- I ran every test myself in a separate terminal and did not rely on an AI's claim that a test
+  would pass. Once Bob said a test would pass; running it showed it failed. We tested the cause with
+  small scripts and fixed the test wording, not the rule.
+- Safety rules for the AI tools: no secrets read, no database reset, no migrations, no Gmail scans
+  by the tool, and no commit or push without my approval.
+- I checked the real emails in Gmail by hand. This showed that a "Payment failed, deadline Unknown"
+  result was correct, because that email states no date.
+- The end-to-end test: scan, save one item, check the dashboard, and save the same item again
+  (reported as already saved).
+
+Planning notes written with AI help are in `gmail-integration-plan.md` and `cp5-save-selected-plan.md`.   
 
 ### Not yet done
 
