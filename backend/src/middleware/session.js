@@ -77,7 +77,7 @@ async function createSession(req, res) {
 function setCookie(res, id) {
   res.cookie(COOKIE_NAME, id, {
     httpOnly: true,
-    secure: false,           // localhost dev; flip to true when served over HTTPS
+    secure: process.env.NODE_ENV === 'production',  // true in production (HTTPS), false in development
     sameSite: 'lax',         // survives the Google top-level redirect back
     signed: true,
     maxAge: SESSION_TTL_DAYS * 24 * 60 * 60 * 1000,
@@ -89,7 +89,7 @@ function setCookie(res, id) {
 function clearCookie(res) {
   res.clearCookie(COOKIE_NAME, {
     httpOnly: true,
-    secure: false,
+    secure: process.env.NODE_ENV === 'production',
     sameSite: 'lax',
     signed: true,
     path: '/',
